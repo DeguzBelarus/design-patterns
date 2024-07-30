@@ -20,16 +20,16 @@
 // Complex parts
 function SubSystem1() { // Первый конструктор объекта с одним методом 
   this.method1 = function () {
-    console.log("вызван SubSystem1.method1");
+    console.log("вызван subSystem1.method1");
   };
 }
 
 function SubSystem2() { // Второй конструктор объекта с двумя методами
   this.method1 = function () {
-    console.log("вызван SubSystem2.method1");
+    console.log("вызван subSystem2.method1");
   };
   this.method2 = function () {
-    console.log("вызван SubSystem2.method2");
+    console.log("вызван subSystem2.method2");
   };
 }
 
@@ -41,12 +41,12 @@ function Facade() { // Конструктор объекта-фасада (ре�
   // Предоставляемые методы фасада
   // добавляем в них вызов методов зависимых объектов
   this.method1 = function () {
-    console.log("вызван Facade.method1");
+    console.log("вызван facade.method1");
     s1.method1();
     s2.method1();
   };
   this.method2 = function () {
-    console.log("вызван Facade.method2");
+    console.log("вызван facade.method2");
     s2.method2();
   };
 }
@@ -62,9 +62,9 @@ test();
 
 /*
 Выведет:
-"вызван Facade.method1"
-"вызван SubSystem1.method1"
-"вызван SubSystem2.method1"
-"вызван Facade.method2"
-"вызван SubSystem2.method2"
+"вызван facade.method1"
+"вызван subSystem1.method1"
+"вызван subSystem2.method1"
+"вызван facade.method2"
+"вызван subSystem2.method2"
  */
