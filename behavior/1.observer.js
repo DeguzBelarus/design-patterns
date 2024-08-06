@@ -26,44 +26,65 @@
 // Дополнительная информация
 // В платформе .NET Framework 4.0 шаблон разработки наблюдателя применяется путём реализации универсальных интерфейсов System.IObservable<T> и System.IObserver<T>
 
-// Реализации
+// Реализация (deguz optimizations)
 class Observable {
   constructor() {
     this.listeners = {};
   }
   // Подписаться
-  on(event, callback) {
-    if (this.listeners[event] == undefined) {
+  on(event, callback, isOnOnce = false) {
+    if (typeof this.listeners[event] === 'undefined') {
       this.listeners[event] = {};
-      this.listeners[event].eventProperty = {};
-      this.listeners[event].eventProperty.isOnOnce = false;
-      this.listeners[event].data = [];
+      this.listeners[event].callbacks = [];
+      this.listeners[event].isOnOnce = isOnOnce;
     }
-    this.listeners[event].data.push(callback);
+    this.listeners[event].callbacks.push(callback);
   }
   // Подписаться единожды
-  onOnce(event, callback) {
-    this.on(event, callback);
-    this.listeners[event].eventProperty.isOnOnce = true;
+  once(event, callback) {
+    this.on(event, callback, true);
   }
   // Отписаться
   off(event, callback) {
-    this.listeners[event].data = this.listeners[event].data.
-    filter(function (listener) {
-      return listener !== callback;
-    });
+    if (typeof this.listeners[event] === 'undefined') return;
+    this.listeners[event].callbacks = this.listeners[event].callbacks.filter((listener) => listener !== callback);
+    if (!this.listeners[event].callbacks.length) delete this.listeners[event];
   }
   // Разослать сообщение подписчикам
   emit(event, data) {
-    if (this.listeners[event] == undefined || this.listeners[event].data == undefined) {
-      return;
-    }
-    let itObj = this;
-    this.listeners[event].data.forEach(listener => {
-      if (itObj.listeners[event].eventProperty.isOnOnce) {
-        itObj.off(event, itObj.listeners[event].data[0]);
-      }
+    if (typeof this.listeners[event] === 'undefined') return;
+    this.listeners[event].callbacks.forEach((listener) => {
       listener(data);
+      if (this.listeners[event].isOnOnce) this.off(event, listener);
     });
   }
 }
+
+// Применение без расширения
+const myObservable = new Observable();
+// Добавляем два слушателя-колбэка
+myObservable.on('hello', (data) => console.log(`"hello" event was emitted, the first callback was executed with data: `, data));
+myObservable.on('hello', () => console.log(`"hello" event was emitted, the second callback was executed without data`, ));
+myObservable.emit('hello', 'world'); // Вывод: ""hello" event was emitted, the first callback was executed with data:  world
+// затем: "hello" event was emitted, the second callback was executed without data
+myObservable.once('world', (data) => console.log(`"world" event was emitted only once, its callback was called with data: ${data}`));
+myObservable.emit('world', 'yoyo'); // Вывод: "world" event was emitted only once, its callback was called with data: yoyo
+myObservable.emit('world', 'yoyo'); // никакого вывода т.к. событие "world" однократное
+
+// Применение с расширением
+class HelloObservable extends Observable {
+  constructor() {
+    super();
+    this.helloCount = 0;
+  }
+  sayHello() {
+    console.log('Object says "Hello!"');
+    this.helloCount++;
+    this.emit('hello');
+  }
+}
+
+const helloObservable = new HelloObservable();
+helloObservable.on('hello', () => console.log('Object said "Hello!", total "Hello!" count: ', helloObservable.helloCount));
+helloObservable.sayHello(); // Вывод: "Object says "Hello!"" и затем "Object said "Hello!", total "Hello!" count:   1
+helloObservable.sayHello(); // Вывод: "Object says "Hello!"" и затем "Object said "Hello!", total "Hello!" count:   2
