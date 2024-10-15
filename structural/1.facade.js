@@ -23,7 +23,6 @@ function SubSystem1() { // Первый конструктор объекта с
     console.log("вызван subSystem1.method1");
   };
 }
-
 function SubSystem2() { // Второй конструктор объекта с двумя методами
   this.method1 = function () {
     console.log("вызван subSystem2.method1");
